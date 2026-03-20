@@ -1,0 +1,22 @@
+{
+    "moderation_begin_message": "☑️ <b>Almost done!</b>\n<blockquote><i>Your profile has been submitted for review.</i></blockquote>\nWe'll notify you when moderation is complete.",
+    "moderation_failed_message": "😱 <b>Oops, something went wrong…</b>\n<blockquote>Your profile was rejected by a moderator.</blockquote>\nCheck the app to learn more.",
+    "moderation_success_message": "✅ <b>Your profile has passed moderation.</b>\n<blockquote><i>Welcome! ❤️</i></blockquote>",
+    "open_app_button_text": "Open PlusDate 🤍",
+    "photo_update_moderation_start_message": "<b>🔎 Your photo has been sent for moderation!</b>\n<blockquote><i>We will notify you when the results are ready</i></blockquote>",
+    "photo_update_moderation_success_message": "✅ <b>Your photo has been successfully updated!</b>",
+    "photo_update_moderation_fail_message": "Your photo did not pass our moderation!Please upload another photo.",
+    "bad_photo_quality": "Your photo was uploaded in low quality! Please upload a higher-quality image!",
+    "face_not_detected": "The uploaded photos do not clearly show your face. Please upload correct images!",
+    "nsfw_content": "We found that the uploaded image contains inappropriate content. Please remove it and upload a suitable photo!",
+    "bot_notification.new_likes.one": "❤️ <b>You have :count new like!</b>\n<blockquote><i>Someone clearly likes you</i></blockquote>",
+    "bot_notification.new_likes.few": "🩷 <b>You have :count new likes!</b>\n<blockquote><i>Your popularity is growing</i></blockquote>",
+    "bot_notification.new_likes.many": "🤍 <b>You have :count new likes!</b>\n<blockquote><i>Today you're in the spotlight</i></blockquote> ✨",
+    "bot_notification.new_matches.one": "💞 <b>You have :count new match!</b>\n<blockquote><i>Seems you liked each other</i></blockquote>",
+    "bot_notification.new_matches.few": "💞 <b>You have :count new matches!</b>\n<blockquote><i>Several new connections at once</i></blockquote>",
+    "bot_notification.new_matches.many": "💞 <b>You have :count new matches!</b>\n<blockquote><i>You're lucky today ❤️</i></blockquote>",
+    "bot_notification.new_messages.one": "📨 <b>You have :count new message!</b>",
+    "bot_notification.new_messages.few": "📨 <b>You have :count new messages!</b>",
+    "bot_notification.new_messages.many": "📨 <b>You have :count new messages!</b>",
+    "start_message": "🤍 <b>PlusDate</b> — a modern way to meet people right in <b>Telegram:</b> no long registration, no extra apps, just comfort<i>!</i>"
+}
