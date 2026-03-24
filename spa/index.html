@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no" />
+    <link rel="stylesheet" href="/src/app/styles/index.css" />
+    <meta name="color-scheme" content="light">
+    <title>Plus Date</title>
+    <style>
+      @keyframes heart-beat {
+        0%, 100% {
+          transform: scale(1);
+        }
+        40% {
+          transform: scale(0.90);
+        }
+      }
+
+      .heart {
+        display: inline-block;
+        transform-origin: center;
+        animation: heart-beat 1s ease-in-out infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <section id="hydration-screen" class='fixed inset-0 h-full w-full flex flex-col items-center justify-center text-center'>
+      <img class="heart" src='/logoWithShadow.svg' alt='logoWithShadow' width="80" height="80" />
+      <h1 class='title1-bold mt-2'>PlusDate</h1>
+      <p id="tagline" class="caption1-medium opacity-50 mt-1">Знакомься с классными людьми в Telegram</p>
+    </section>
+    <script>
+      (function() {
+        const locale = navigator.language.toLowerCase();
+        const isRussian = locale.startsWith('ru');
+        const tagline = document.getElementById('tagline');
+
+        if (isRussian) {
+          tagline.textContent = 'Знакомься с классными людьми в Telegram';
+        } else {
+          tagline.textContent = 'Meet your next match on Telegram';
+        }
+      })();
+    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/app/main.tsx"></script>
+  </body>
+</html>
