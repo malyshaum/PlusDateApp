@@ -1,0 +1,137 @@
+export const matchAnimations = {
+  modal: {
+    initial: { opacity: 0, scale: 0.9 },
+    exit: { opacity: 0, scale: 0.9 },
+    transition: {
+      duration: 0.5,
+      ease: [0.25, 0.46, 0.45, 0.94] as [number, number, number, number],
+    },
+  },
+
+  heartIcon: {
+    initial: {
+      opacity: 0,
+      scale: 1.5,
+    },
+    animate: {
+      opacity: 1,
+      scale: [1.5, 0.7, 1],
+    },
+    transition: {
+      scale: {
+        delay: 0.5,
+        duration: 1,
+        times: [0, 0.33, 1],
+      },
+      opacity: {
+        delay: 0.5,
+        duration: 0.5,
+      },
+    },
+  },
+
+  userImage: {
+    initial: {
+      x: -200,
+      opacity: 0,
+    },
+    animate: {
+      x: 0,
+      opacity: 1,
+    },
+    transition: {
+      delay: 0.5,
+      duration: 0.8,
+      type: "spring" as const,
+      stiffness: 100,
+      damping: 15,
+    },
+  },
+
+  matchUserImage: {
+    initial: {
+      x: 200,
+      opacity: 0,
+    },
+    animate: {
+      x: 0,
+      opacity: 1,
+    },
+    transition: {
+      delay: 0.5,
+      duration: 0.8,
+      type: "spring" as const,
+      stiffness: 100,
+      damping: 15,
+    },
+  },
+
+  titleShadow1: {
+    initial: { y: 0, opacity: 0 },
+    animate: {
+      y: [0, 0, -72],
+      opacity: [1, 1, 0],
+    },
+    transition: {
+      delay: 1,
+      times: [0, 0.6, 1],
+      duration: 1,
+      ease: "easeOut" as const,
+    },
+  },
+
+  titleShadow2: {
+    initial: { y: 0, opacity: 0 },
+    animate: {
+      y: [0, 20, -52],
+      opacity: [1, 1, 0],
+    },
+    transition: {
+      delay: 1,
+      times: [0, 0.6, 1],
+      duration: 1,
+      ease: "easeOut" as const,
+    },
+  },
+
+  titleMain: {
+    initial: { y: 0 },
+    animate: { y: 40 },
+    transition: {
+      delay: 1,
+      duration: 0.4,
+      ease: "easeOut" as const,
+    },
+  },
+
+  description: {
+    initial: { y: 40 },
+    animate: { y: 80 },
+    transition: {
+      delay: 1,
+      duration: 0.4,
+      ease: "easeOut" as const,
+    },
+  },
+
+  buttons: {
+    initial: { y: 200 },
+    animate: { y: 0 },
+    transition: {
+      delay: 1,
+      duration: 0.4,
+      ease: "easeOut" as const,
+    },
+  },
+}
+
+export const matchStyles = {
+  background: "radial-gradient(149.52% 58.99% at 50% 41.01%, #221419 0%, #000000 82.69%, #000000 82.7%)",
+  glowBackground: "radial-gradient(50% 50% at 50% 50%, rgba(255, 61, 108, 0.5) 0%, rgba(255, 61, 108, 0) 100%)",
+  titleGradient: {
+    background: "linear-gradient(180deg, #FFFFFF 10.29%, #FFAEC7 89.71%)",
+    backgroundClip: "text",
+    WebkitBackgroundClip: "text",
+    color: "transparent",
+  },
+} as const
