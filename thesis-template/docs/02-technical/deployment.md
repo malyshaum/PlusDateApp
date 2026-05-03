@@ -33,7 +33,7 @@ The repository contains separate Docker assets for the API, SPA, and database bo
 | **Development API** | `http://localhost:8000` | local feature branch |
 | **Development SPA** | `http://localhost:5173` for Vite or `http://localhost` for Nginx container | local feature branch |
 | **Development database** | `localhost:5432` | local Docker volume |
-| **Production** | Telegram bot `@stage_plusdate_bot` | main/release branch |
+| **Production** | [https://t.me/stage_plusdate_bot](https://t.me/stage_plusdate_bot) | main/release branch |
 
 ## CI/CD Pipeline
 

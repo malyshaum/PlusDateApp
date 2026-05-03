@@ -48,15 +48,15 @@ The frontend is a single page application designed for Telegram's mobile webview
 
 ### System Components
 
-| Component | Description | Technology |
-|-----------|-------------|------------|
-| **Frontend SPA** | Mobile-first Telegram Mini App UI with onboarding, profile, feed, likes, chat, premium, moderation, and settings screens. | React 19, TypeScript, Vite 7, React Router, TanStack Query, Zustand, i18next, Tailwind CSS 4 |
-| **Backend API** | REST API and business workflows for authentication, users, feed, chat, storage, moderation, payments, dictionaries, admin, and bot webhooks. | Laravel 12, PHP 8.2, Sanctum, DTOs, services, rules, Eloquent |
-| **Database** | Persistent relational data with geospatial and vector extensions. | PostgreSQL 15, PostGIS, pgvector |
-| **Realtime** | Private event channels for chat, matches, moderation, and user updates. | Laravel Reverb, Laravel Echo |
-| **Queue and Cache** | Background jobs for moderation, media processing, notifications, and system tasks. | Redis, Laravel Queue |
-| **Storage** | User photo/video storage and derived blurred images. | MinIO locally, S3/GCS-compatible abstractions |
-| **External Services** | Identity, notifications, invoices, payments, error tracking. | Telegram Bot API, Stripe Cashier, Sentry |
+The system is split into the following runtime components:
+
+- **Frontend SPA:** mobile-first Telegram Mini App UI for onboarding, profile, feed, likes, chat, premium, moderation, and settings. Technologies: React 19, TypeScript, Vite 7, React Router, TanStack Query, Zustand, i18next, Tailwind CSS 4.
+- **Backend API:** REST API and business workflows for authentication, users, feed, chat, storage, moderation, payments, dictionaries, admin, and bot webhooks. Technologies: Laravel 12, PHP 8.2, Sanctum, DTOs, services, rules, Eloquent.
+- **Database:** persistent relational data with geospatial and vector extensions. Technologies: PostgreSQL 15, PostGIS, pgvector.
+- **Realtime:** private event channels for chat, matches, moderation, and user updates. Technologies: Laravel Reverb and Laravel Echo.
+- **Queue and Cache:** background jobs for moderation, media processing, notifications, and system tasks. Technologies: Redis and Laravel Queue.
+- **Storage:** user photo/video storage and derived blurred images. Technologies: MinIO locally and S3/GCS-compatible storage abstractions.
+- **External Services:** identity, notifications, invoices, payments, and error tracking. Technologies: Telegram Bot API, Stripe Cashier, Sentry.
 
 ### Data Flow
 
@@ -83,22 +83,20 @@ sequenceDiagram
 
 ## Key Technical Decisions
 
-| Decision | Rationale | Alternatives Considered |
-|----------|-----------|------------------------|
-| Use Telegram Mini App instead of native apps | Fast access, Telegram identity, bot notifications, and no app-store delivery requirement. | Native iOS/Android, generic responsive website |
-| Use Laravel as backend | Strong API, queues, events, validation, Eloquent ORM, Sanctum, Cashier, and Reverb support. | Node.js/NestJS, Django, Spring Boot |
-| Use React/Vite SPA | Fast iteration, TypeScript support, rich mobile UI, feature-sliced frontend structure. | Vue, Next.js, server-rendered Blade |
-| Use PostgreSQL with PostGIS and pgvector | One database supports relational data, distance ordering, and vector-ready profile features. | MySQL, MongoDB, separate vector DB |
-| Use service and DTO layers | Keeps controllers thin and makes business flows explicit. | Fat controllers, direct model manipulation from frontend-specific controllers |
-| Use Docker assets | Reproducible local setup for API, database, Redis, MinIO, and SPA. | Manual local installation only |
+The main architecture decisions are:
+
+- **Use Telegram Mini App instead of native apps.** Rationale: fast access, Telegram identity, bot notifications, and no app-store delivery requirement. Alternatives considered: native iOS/Android and a generic responsive website.
+- **Use Laravel as backend.** Rationale: strong API features, queues, events, validation, Eloquent ORM, Sanctum, Cashier, and Reverb support. Alternatives considered: Node.js/NestJS, Django, and Spring Boot.
+- **Use React/Vite SPA.** Rationale: fast iteration, TypeScript support, rich mobile UI, and feature-sliced frontend structure. Alternatives considered: Vue, Next.js, and server-rendered Blade.
+- **Use PostgreSQL with PostGIS and pgvector.** Rationale: one database supports relational data, distance ordering, and vector-ready profile features. Alternatives considered: MySQL, MongoDB, and a separate vector database.
+- **Use service and DTO layers.** Rationale: controllers stay thin and business flows remain explicit. Alternatives considered: fat controllers and direct model manipulation from frontend-specific controllers.
+- **Use Docker assets.** Rationale: reproducible local setup for API, database, Redis, MinIO, and SPA. Alternative considered: manual local installation only.
 
 ## Security Overview
 
-| Aspect | Implementation |
-|--------|----------------|
-| **Authentication** | Telegram login endpoint and Laravel Sanctum protected routes. |
-| **Authorization** | Route middleware, request validation, and domain rule classes such as file, profile, feed, and storage rules. |
-| **Data Protection** | HTTPS is expected in production; secrets are environment variables; uploaded files are handled by storage services. |
-| **Input Validation** | Laravel form requests, enum-based validation, zod schemas in frontend forms, and custom rule classes. |
-| **Secrets Management** | `.env` files for local development; deployment should use platform secrets. |
-| **Moderation** | User moderation records, moderation jobs, and frontend route guards block unresolved high-risk states. |
+- **Authentication:** Telegram login endpoint and Laravel Sanctum protected routes.
+- **Authorization:** route middleware, request validation, and domain rule classes such as file, profile, feed, and storage rules.
+- **Data protection:** HTTPS is expected in production; secrets are environment variables; uploaded files are handled by storage services.
+- **Input validation:** Laravel form requests, enum-based validation, zod schemas in frontend forms, and custom rule classes.
+- **Secrets management:** `.env` files for local development; deployment should use platform secrets.
+- **Moderation:** user moderation records, moderation jobs, and frontend route guards block unresolved high-risk states.

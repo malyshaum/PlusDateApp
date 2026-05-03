@@ -15,7 +15,7 @@
 
 | Resource | URL |
 |----------|-----|
-| Production | `@stage_plusdate_bot` |
+| Production | [https://t.me/stage_plusdate_bot](https://t.me/stage_plusdate_bot) |
 | Repository | PlusDateApp monorepository |
 | API Docs | See [API Reference](appendices/api-reference.md) |
 | Design | [Plus Date Figma](https://www.figma.com/design/vaugP8qk1zbtk3tqPswqK5/Plus-Date?node-id=5852-11409&t=50YjVAfNvscbvVVr-1) |

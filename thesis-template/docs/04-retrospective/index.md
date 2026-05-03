@@ -32,7 +32,7 @@ This section reflects on the project development process, technical results, kno
 
 | Planned | Actual Outcome | Cause | Impact |
 |---------|---------------|-------|--------|
-| Complete production deployment links | Production is available through Telegram bot `@stage_plusdate_bot`, but a separate public web URL is not specified. | Product is distributed through Telegram Mini App. | Low |
+| Complete production deployment links | Production is available through Telegram bot `https://t.me/stage_plusdate_bot`, but a separate public web URL is not specified. | Product is distributed through Telegram Mini App. | Low |
 | Generated API documentation | API reference is manually documented. | OpenAPI annotations/generator were not added during implementation. | Medium |
 | Full automated UI tests | Backend has some feature tests, but frontend E2E tests are absent. | Time was spent on product flows and integrations. | Medium |
 | Complete admin/moderation dashboard | Backend admin/moderation endpoints exist, but full dashboard is out of scope. | Diploma scope prioritized user-facing flows. | Low |
@@ -58,7 +58,7 @@ This section reflects on the project development process, technical results, kno
 
 | ID | Issue | Severity | Description | Potential Fix |
 |----|-------|----------|-------------|---------------|
-| TD-001 | Limited production URL details | Low | Documentation includes Telegram bot `@stage_plusdate_bot`, but not a separate API or web hosting URL. | Add API/web URLs if they are exposed separately. |
+| TD-001 | Limited production URL details | Low | Documentation includes Telegram bot `https://t.me/stage_plusdate_bot`, but not a separate API or web hosting URL. | Add API/web URLs if they are exposed separately. |
 | TD-002 | Manual API docs | Medium | API reference can become outdated as routes change. | Add OpenAPI generation or route-to-doc tooling. |
 | TD-003 | Limited automated coverage | Medium | Chat, moderation, storage, payments, and frontend flows need more tests. | Add PHPUnit feature tests and Playwright E2E tests. |
 | TD-004 | No full moderator dashboard | Low | Moderation exists, but operations UI is limited. | Build admin moderation queue and review screens. |
