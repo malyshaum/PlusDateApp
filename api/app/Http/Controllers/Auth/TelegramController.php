@@ -22,9 +22,7 @@ class TelegramController extends Controller
 {
     // TODO: move to config if needed
     private const array ADMIN_USERNAMES = [
-        'shvladzt',
-        'alesdead',
-        'anakul',
+        'mikita',
     ];
 
     public function __construct(
