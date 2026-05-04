@@ -5,10 +5,8 @@ info:
   version: '1.0.0'
 
 servers:
-  - url: https://api.plus.date
-    description: Production
   - url: https://plusdate-api.up.railway.app
-    description: Staging
+    description: Production
   - url: http://localhost:8000
     description: Local
 
@@ -32,6 +30,17 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Sanctum-токен из `POST /api/login` (или из cookie `auth_token` в SPA).
+    xUser:
+      type: apiKey
+      in: header
+      name: x-user
+      description: Админский логин (без пароля). Подходит только для usernames из ADMIN_USERNAMES в TelegramController. Используется на `POST /api/login`.
+    customHeader:
+      type: apiKey
+      in: header
+      name: X-Custom
+      description: Любой свой header — переименуй `name` под нужный или добавь рядом ещё одну схему.
   schemas:
     Error:
       type: object
@@ -117,8 +126,13 @@ paths:
     post:
       tags: [Auth]
       summary: Login via Telegram WebApp data
-      description: Принимает initData из Telegram WebApp. Возвращает Sanctum-токен.
-      security: []
+      description: |
+        Принимает initData из Telegram WebApp. Возвращает Sanctum-токен.
+
+        **Админский путь** (минуя Telegram-валидацию): передай header `x-user: <username>` где username — из ADMIN_USERNAMES в TelegramController (shvladzt / alesdead / anakul). Тогда `query` и `restore` игнорируются.
+      security:
+        - {}        # без авторизации (Telegram initData в body)
+        - xUser: [] # ИЛИ через header x-user (админ)
       requestBody:
         required: true
         content:
