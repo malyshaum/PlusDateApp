@@ -1,0 +1,647 @@
+openapi: 3.0.3
+info:
+  title: PlusDate API
+  description: Telegram Mini App dating service. Auth via Sanctum bearer token (получается через `POST /api/login` с Telegram WebApp данными).
+  version: '1.0.0'
+
+servers:
+  - url: https://api.plus.date
+    description: Production
+  - url: https://plusdate-api.up.railway.app
+    description: Staging
+  - url: http://localhost:8000
+    description: Local
+
+tags:
+  - name: Auth
+  - name: Telegram
+  - name: User
+  - name: Dictionary
+  - name: Feed
+  - name: Chat
+  - name: Storage
+  - name: Moderation
+  - name: Payment
+  - name: Admin
+  - name: Likes
+  - name: Health
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+        code:    { type: integer }
+    LoginResponse:
+      type: object
+      properties:
+        token: { type: string, example: '17|aBcDeFgHiJ...' }
+    User:
+      type: object
+      properties:
+        id:                  { type: integer, example: 7751063498 }
+        username:            { type: string, nullable: true, example: 'username' }
+        name:                { type: string, nullable: true }
+        profile_description: { type: string, nullable: true }
+        instagram:           { type: string, nullable: true }
+        language_code:       { type: string, example: 'en' }
+        is_onboarded:        { type: boolean }
+        is_under_moderation: { type: boolean }
+        is_premium:          { type: boolean }
+        photo_url:           { type: string, nullable: true }
+    City:
+      type: object
+      properties:
+        id:           { type: integer }
+        name:         { type: string }
+        ru_name:      { type: string, nullable: true }
+        country_code: { type: string }
+        latitude:     { type: number, format: float }
+        longitude:    { type: number, format: float }
+    Country:
+      type: object
+      properties:
+        id:           { type: integer }
+        name:         { type: string }
+        ru_name:      { type: string, nullable: true }
+        country_code: { type: string }
+    Activity:
+      type: object
+      properties:
+        id:    { type: integer }
+        title: { type: string, example: 'it' }
+    Hobby:
+      type: object
+      properties:
+        id:    { type: integer }
+        title: { type: string, example: 'gaming' }
+        emoji: { type: string, nullable: true, example: '🎮' }
+    FeedProfile:
+      type: object
+      properties:
+        id:          { type: integer }
+        user_id:     { type: integer }
+        sex:         { type: string, enum: [male, female] }
+        age:         { type: integer }
+        height:      { type: integer, nullable: true }
+        eye_color:   { type: string, nullable: true }
+        search_for:  { type: string, nullable: true, example: 'relations' }
+        activity:    { $ref: '#/components/schemas/Activity' }
+        hobbies:     { type: array, items: { $ref: '#/components/schemas/Hobby' } }
+        zodiac_sign: { type: string, nullable: true }
+    ChatMessage:
+      type: object
+      properties:
+        id:        { type: integer }
+        chat_id:   { type: integer }
+        sender_id: { type: integer }
+        message:   { type: string }
+        is_read:   { type: boolean }
+        created_at: { type: string, format: date-time }
+    Chat:
+      type: object
+      properties:
+        id:          { type: integer }
+        last_message: { $ref: '#/components/schemas/ChatMessage' }
+        users:       { type: array, items: { $ref: '#/components/schemas/User' } }
+
+paths:
+  # ============== AUTH ==============
+  /api/login:
+    post:
+      tags: [Auth]
+      summary: Login via Telegram WebApp data
+      description: Принимает initData из Telegram WebApp. Возвращает Sanctum-токен.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query:
+                  type: string
+                  description: Сырая строка `Telegram.WebApp.initData`
+                  example: 'user=%7B%22id%22%3A123...&auth_date=...&hash=...'
+                restore:
+                  type: boolean
+                  description: Восстановить ранее удалённый аккаунт
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/LoginResponse' } } } }
+        '403': { description: Telegram auth signature invalid }
+        '200 ACCOUNT_WAS_DELETED': { description: 'Account is soft-deleted; pass restore=true' }
+
+  # ============== TELEGRAM WEBHOOKS ==============
+  /api/telegram/webhook:
+    post:
+      tags: [Telegram]
+      summary: Webhook основного бота
+      description: Принимает все апдейты Telegram (message, callback_query, payment, my_chat_member и т.д.). Регистрируется через `setWebhook`.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, description: 'Telegram Update object' }
+      responses:
+        '200': { description: OK }
+
+  /api/telegram/moderation/webhook:
+    post:
+      tags: [Telegram]
+      summary: Webhook модерационного бота
+      description: Принимает callback_query от ACCEPT/NSFW/Photo quality/No face кнопок.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object }
+      responses:
+        '200': { description: OK }
+
+  # ============== USER ==============
+  /api/me:
+    get:
+      tags: [User]
+      summary: Текущий юзер
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/User'
+                  - type: object
+                    properties:
+                      feed_profile:    { $ref: '#/components/schemas/FeedProfile' }
+                      search_preference: { type: object, nullable: true }
+
+  /api/user/{id}:
+    get:
+      tags: [User]
+      summary: Юзер по id
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        '200': { description: OK, content: { application/json: { schema: { $ref: '#/components/schemas/User' } } } }
+        '404': { description: Not found }
+
+  /api/user/profile:
+    post:
+      tags: [User]
+      summary: Создать/обновить профиль (upsert)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:                { type: string }
+                profile_description: { type: string }
+                instagram:           { type: string }
+                age:                 { type: integer }
+                height:              { type: integer }
+                eye_color:           { type: string }
+                sex:                 { type: string, enum: [male, female] }
+                search_for:          { type: string, enum: [friends, relations] }
+                activity_id:         { type: integer }
+                city_id:             { type: integer }
+                hobbies:             { type: array, items: { type: integer } }
+      responses: { '200': { description: OK } }
+
+  /api/user/search/preferences:
+    put:
+      tags: [User]
+      summary: Обновить предпочтения поиска
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                age_min:     { type: integer }
+                age_max:     { type: integer }
+                sex:         { type: string, enum: [male, female] }
+                search_for:  { type: string }
+                activity_id: { type: integer }
+                hobbies:     { type: array, items: { type: integer } }
+                distance:    { type: integer }
+      responses: { '200': { description: OK } }
+
+  /api/user/likes:
+    get:
+      tags: [User]
+      summary: Лайки которые получил юзер
+      responses: { '200': { description: OK } }
+
+  /api/user/photos:
+    post:
+      tags: [User]
+      summary: Загрузить/обновить фото
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                photos: { type: array, items: { type: string, format: binary } }
+      responses: { '200': { description: OK } }
+
+  /api/user/photo/{photoId}/main:
+    post:
+      tags: [User]
+      summary: Сделать фото главным
+      parameters:
+        - { in: path, name: photoId, required: true, schema: { type: integer } }
+      responses: { '200': { description: OK } }
+
+  /api/user/files:
+    get:
+      tags: [User]
+      summary: Список файлов юзера (фото + видео)
+      responses: { '200': { description: OK } }
+    post:
+      tags: [User]
+      summary: Залить файлы с автомодерацией
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                files: { type: array, items: { type: string, format: binary } }
+      responses: { '200': { description: OK } }
+
+  /api/user/files/video:
+    post:
+      tags: [User]
+      summary: Загрузить видео
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                video: { type: string, format: binary }
+      responses: { '200': { description: OK } }
+
+  /api/user/files/video/{id}:
+    delete:
+      tags: [User]
+      summary: Удалить видео
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses: { '204': { description: Deleted } }
+
+  /api/user/swipes:
+    get:
+      tags: [User]
+      summary: Доступные свайпы (квота)
+      responses: { '200': { description: OK } }
+
+  /api/user/stats:
+    get:
+      tags: [User]
+      summary: Статистика юзера (счётчики чатов/лайков/матчей)
+      responses: { '200': { description: OK } }
+
+  /api/user/onboard:
+    post:
+      tags: [User]
+      summary: Завершить онбординг
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                profile:           { type: object }
+                search_preference: { type: object }
+      responses: { '200': { description: OK } }
+
+  /api/user/account:
+    delete:
+      tags: [User]
+      summary: Удалить аккаунт (soft delete)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reasons: { type: array, items: { type: string } }
+                note:    { type: string }
+      responses: { '204': { description: Deleted } }
+
+  # ============== DICTIONARY ==============
+  /api/dictionary/cities:
+    get:
+      tags: [Dictionary]
+      summary: Города
+      description: Если `search` не задан — возвращает 10 ближайших городов к IP-локации юзера.
+      parameters:
+        - { in: query, name: search,    schema: { type: string }  }
+        - { in: query, name: latitude,  schema: { type: number }  }
+        - { in: query, name: longitude, schema: { type: number }  }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/City' } } } } } }
+
+  /api/dictionary/countries:
+    get:
+      tags: [Dictionary]
+      summary: Страны
+      parameters:
+        - { in: query, name: search, schema: { type: string } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Country' } } } } } }
+
+  /api/dictionary/activities:
+    get:
+      tags: [Dictionary]
+      summary: Виды деятельности (отрасли)
+      parameters:
+        - { in: query, name: search, schema: { type: string } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Activity' } } } } } }
+
+  /api/dictionary/hobbies:
+    get:
+      tags: [Dictionary]
+      summary: Хобби
+      parameters:
+        - { in: query, name: search, schema: { type: string } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Hobby' } } } } } }
+
+  # ============== FEED ==============
+  /api/feed/profiles:
+    get:
+      tags: [Feed]
+      summary: Лента анкет для свайпов
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/User' } } } } } }
+
+  /api/feed/swipe:
+    post:
+      tags: [Feed]
+      summary: Свайп вправо/влево/суперлайк
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [target_user_id, direction]
+              properties:
+                target_user_id: { type: integer }
+                direction:      { type: string, enum: [like, dislike, super_like] }
+      responses:
+        '200':
+          description: OK (включает is_match)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  is_match: { type: boolean }
+                  chat_id:  { type: integer, nullable: true }
+
+  /api/feed/swipe/revert:
+    post:
+      tags: [Feed]
+      summary: Откатить последний свайп (премиум)
+      responses: { '200': { description: OK } }
+
+  /api/feed/match:
+    delete:
+      tags: [Feed]
+      summary: Удалить матч/чат
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { chat_id: { type: integer } }
+      responses: { '204': { description: Deleted } }
+
+  # ============== CHAT ==============
+  /api/chat:
+    get:
+      tags: [Chat]
+      summary: Все чаты юзера
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Chat' } } } } } }
+    post:
+      tags: [Chat]
+      summary: Создать чат с юзером
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { user_id: { type: integer } }
+      responses: { '201': { description: Created, content: { application/json: { schema: { $ref: '#/components/schemas/Chat' } } } } }
+
+  /api/chat/{chat_id}/message:
+    get:
+      tags: [Chat]
+      summary: Сообщения чата
+      parameters:
+        - { in: path, name: chat_id, required: true, schema: { type: integer } }
+        - { in: query, name: cursor, schema: { type: integer } }
+        - { in: query, name: limit,  schema: { type: integer, default: 50 } }
+      responses: { '200': { description: OK, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/ChatMessage' } } } } } }
+
+  /api/chat/message:
+    post:
+      tags: [Chat]
+      summary: Отправить сообщение
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [chat_id, message]
+              properties:
+                chat_id: { type: integer }
+                message: { type: string }
+      responses: { '201': { description: Sent, content: { application/json: { schema: { $ref: '#/components/schemas/ChatMessage' } } } } }
+    put:
+      tags: [Chat]
+      summary: Пометить сообщение прочитанным
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { message_id: { type: integer } }
+      responses: { '200': { description: OK } }
+
+  /api/chat/recent:
+    get:
+      tags: [Chat]
+      summary: Недавние чаты (для бейджей)
+      responses: { '200': { description: OK } }
+
+  # ============== STORAGE ==============
+  /api/storage/file/photo:
+    post:
+      tags: [Storage]
+      summary: Загрузить фото в S3
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  filepath: { type: string }
+                  url:      { type: string }
+
+  /api/storage/file/video:
+    post:
+      tags: [Storage]
+      summary: Загрузить видео в S3
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file: { type: string, format: binary }
+      responses: { '200': { description: OK } }
+
+  /api/storage/file:
+    delete:
+      tags: [Storage]
+      summary: Удалить файл из S3
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties: { filepath: { type: string } }
+      responses: { '204': { description: Deleted } }
+
+  # ============== MODERATION ==============
+  /api/moderation/user-profile/photos:
+    get:
+      tags: [Moderation]
+      summary: Получить статус автомодерации фото юзера
+      responses: { '200': { description: OK } }
+
+  # ============== PAYMENT ==============
+  /api/payment/subscription:
+    get:
+      tags: [Payment]
+      summary: Текущая подписка
+      responses: { '200': { description: OK } }
+
+  /api/payment/subscription/cancel:
+    post:
+      tags: [Payment]
+      summary: Отменить подписку
+      responses: { '200': { description: OK } }
+
+  /api/subscribe:
+    post:
+      tags: [Payment]
+      summary: Оформить подписку (Stripe)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:           { type: string, enum: [week, month, three_month] }
+                payment_method: { type: string }
+      responses: { '200': { description: OK } }
+
+  /api/payment/telegram/invoice:
+    post:
+      tags: [Payment]
+      summary: Создать Telegram Stars инвойс
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type: { type: string, enum: [week, month, three_month] }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: { invoice_link: { type: string } }
+
+  # ============== ADMIN ==============
+  /api/admin/create-bot:
+    post:
+      tags: [Admin]
+      summary: Создать бот-анкету
+      requestBody:
+        content:
+          application/json:
+            schema: { type: object }
+      responses: { '201': { description: Created } }
+
+  /api/admin/user/{user_id}:
+    delete:
+      tags: [Admin]
+      summary: Удалить аккаунт юзера
+      parameters:
+        - { in: path, name: user_id, required: true, schema: { type: integer } }
+      responses: { '204': { description: Deleted } }
+
+  # ============== LIKES ==============
+  /api/likes/respond:
+    post:
+      tags: [Likes]
+      summary: Ответить на лайк (accept / reject)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id: { type: integer }
+                action:  { type: string, enum: [accept, reject] }
+      responses: { '200': { description: OK } }
+
+  # ============== HEALTH ==============
+  /api/healthcheck:
+    get:
+      tags: [Health]
+      summary: Healthcheck
+      security: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { type: object, properties: { status: { type: string, example: ok } } }
+
+security:
+  - bearerAuth: []
